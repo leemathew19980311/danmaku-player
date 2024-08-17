@@ -1,9 +1,7 @@
-import SelectFile from "@/components/selectFile";
+import Index from "@/components/index";
 
 export default function Home() {
   return (
-    <>
-      <SelectFile></SelectFile>
-    </>
+    <Index />
   );
 }
