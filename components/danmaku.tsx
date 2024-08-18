@@ -8,7 +8,7 @@ const Danmaku = ({
   videoRef: MutableRefObject<HTMLVideoElement | null>;
 }) => {
   const [size, setSize] = useState({ width: 0, height: 0 });
-  const file = useGlobalState((state) => state.file);
+  const { file, danmakuInstance } = useGlobalState((state) => state);
 
   useEffect(() => {
     const handleResize = debounce(
@@ -16,6 +16,7 @@ const Danmaku = ({
         if (videoRef.current) {
           const width = videoRef.current.offsetWidth;
           const height = videoRef.current.offsetHeight;
+          danmakuInstance && danmakuInstance.resize();
           setSize({ width, height });
         }
       },

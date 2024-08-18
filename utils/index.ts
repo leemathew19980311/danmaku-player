@@ -38,32 +38,8 @@ function getFileFromLocal(): Promise<File | undefined> {
     // 使用 Promise
     input.onchange = async (event) => {
       const file = (event.target as HTMLInputElement).files?.[0];
-
-      resolve(file); // 解析文件
-      //   if (file) {
-      //     interface RecentFile {
-      //       name: string;
-      //       path: string;
-      //       hash: string;
-      //       timestamp: number;
-      //     }
-      //     const recentFile: RecentFile[] =
-      //       getStorageFromLocal("recentFile") || [];
-      //     const hash = await generateFileHash(file);
-      //     const recentFileHash = recentFile.find((item) => item.hash === hash);
-      //     if (recentFileHash) {
-      //       recentFileHash.timestamp = Date.now();
-      //     } else {
-      //       recentFile.push({
-      //         name: file.name,
-      //         path: (event.target as HTMLInputElement).value,
-      //         hash,
-      //         timestamp: Date.now(),
-      //       });
-      //     }
-      //     setStorageToLocal("recentFile", recentFile);
-      //   }
       input.remove();
+      resolve(file); // 解析文件
     };
     input.click();
   });

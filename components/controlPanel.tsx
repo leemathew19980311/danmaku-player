@@ -1,10 +1,11 @@
-import { MutableRefObject, useEffect, useState } from "react";
+import { MutableRefObject, useEffect, useRef, useState } from "react";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import PauseIcon from "@mui/icons-material/Pause";
 import { Progress } from "@nextui-org/progress";
 import { motion } from "framer-motion";
 import {
   Button,
+  Input,
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -18,6 +19,40 @@ import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import DanmakuLib from "danmaku/dist/esm/danmaku.dom.js";
 import { exitFullscreen, requestFullscreen } from "@/utils";
+import { useGlobalState } from "./utils";
+
+import fakeData from "./fake.json";
+import { set } from "lodash-es";
+const danmakuStyle = {
+  fontSize: "20px",
+  color: "#ffffff",
+  padding: "0px 4px",
+  textShadow: "-1px -1px #000, -1px 1px #000, 1px -1px #000, 1px 1px #000",
+};
+let danmakuInstance: any = null;
+const createDanmakuInstance = () => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      danmakuInstance = new DanmakuLib({
+        container: document.getElementById("danmaku-container"),
+        media: document.getElementById("video"),
+        comments: [],
+      });
+      useGlobalState.setState({ danmakuInstance });
+      resolve(true);
+    }, 1000);
+  });
+};
+
+const getInitData = () => {
+  fakeData.forEach((item) => {
+    danmakuInstance.emit({
+      text: item.text,
+      time: item.offset_time / 1000,
+      style: danmakuStyle,
+    });
+  });
+};
 
 const ControlPanel = ({
   videoRef,
@@ -30,61 +65,76 @@ const ControlPanel = ({
 
   const [volume, setVolume] = useState(1); // 记录当前音量
   const [isFullScreen, setIsFullScreen] = useState(false); // 记录当前是否全屏
+  const [danmakuText, setDanmakuText] = useState("");
+
+  const { file } = useGlobalState((state) => state);
 
   useEffect(() => {
     if (!videoRef.current) return;
-    videoRef.current.addEventListener("timeupdate", () => {
+    const timeUpdateHandler = () => {
       setCurrentTime(videoRef.current?.currentTime ?? 0);
-    });
-    videoRef.current.addEventListener("durationchange", () => {
+    };
+    const durationChangeHandler = () => {
       setDuration(videoRef.current?.duration ?? 0);
-    });
-    videoRef.current.addEventListener("playing", () => {
+    };
+    const playHandler = () => {
       setIsPlaying(true);
-    });
-    videoRef.current.addEventListener("pause", () => {
+    };
+    const pauseHandler = () => {
       setIsPlaying(false);
-    });
-    videoRef.current.addEventListener("volumechange", () => {
+    };
+    const volumeChangeHandler = () => {
       setVolume(videoRef.current?.volume ?? 1);
-    });
+    };
+    videoRef.current.addEventListener("timeupdate", timeUpdateHandler);
+    videoRef.current.addEventListener("durationchange", durationChangeHandler);
+    videoRef.current.addEventListener("playing", playHandler);
+    videoRef.current.addEventListener("pause", pauseHandler);
+    videoRef.current.addEventListener("volumechange", volumeChangeHandler);
+
+    return () => {
+      videoRef.current?.removeEventListener("timeupdate", timeUpdateHandler);
+      videoRef.current?.removeEventListener(
+        "durationchange",
+        durationChangeHandler
+      );
+      videoRef.current?.removeEventListener("playing", playHandler);
+      videoRef.current?.removeEventListener("pause", pauseHandler);
+      videoRef.current?.removeEventListener(
+        "volumechange",
+        volumeChangeHandler
+      );
+    };
   }, [videoRef]);
+
+  useEffect(() => {
+    if (!file) return;
+    createDanmakuInstance().then(getInitData);
+
+    return () => {
+      danmakuInstance?.destroy();
+      useGlobalState.setState({ danmakuInstance: null });
+    };
+  }, [file]);
+
+  const handleDanmaku = () => {
+    if (!danmakuText || !danmakuInstance) return;
+    danmakuInstance.emit({
+      text: danmakuText,
+      time: videoRef.current?.currentTime ?? 1,
+      style: { ...danmakuStyle, border: "2px solid #337ab7" },
+    });
+    setDanmakuText("");
+  };
+
   const handlePlayPause = () => {
     if (videoRef.current) {
       if (videoRef.current.paused) {
-        var danmaku1 = new DanmakuLib({
-          container: document.getElementById("danmaku-container"),
-          media: document.getElementById("video"),
-          comments: [
-            {
-              text: "example",
-              mode: "rtl",
-              time: 2,
-              style: {
-                fontSize: "20px",
-                color: "#ffffff",
-                border: "1px solid #337ab7",
-                textShadow:
-                  "-1px -1px #000, -1px 1px #000, 1px -1px #000, 1px 1px #000",
-              },
-            },
-          ],
-        });
         videoRef.current.play();
         setIsPlaying(true);
       } else {
         videoRef.current.pause();
         setIsPlaying(false);
-      }
-    }
-  };
-
-  const handleMute = () => {
-    if (videoRef.current) {
-      if (videoRef.current.muted) {
-        videoRef.current.muted = false;
-      } else {
-        videoRef.current.muted = true;
       }
     }
   };
@@ -166,6 +216,19 @@ const ControlPanel = ({
               .toString()
               .padStart(2, "0")}
           </span>
+        </div>
+        <div className="mx-auto flex gap-3 items-center">
+          <Input
+            size="sm"
+            placeholder="发条弹幕支持一下～"
+            isClearable
+            onValueChange={(value) => setDanmakuText(value)}
+            value={danmakuText}
+            className="h-8 w-60 bg-gray-700 rounded"
+          />
+          <Button onClick={handleDanmaku} className="h-8">
+            发送
+          </Button>
         </div>
         <div className="flex items-center ml-auto">
           <Popover placement="top">
