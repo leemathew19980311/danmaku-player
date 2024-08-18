@@ -1,8 +1,7 @@
 import { motion, Variants } from "framer-motion";
 import { useGlobalState } from "./utils";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import ControlPanel from "./controlPanel";
-import flvjs from "flv.js";
 import Danmaku from "./danmaku";
 const variants: Variants = {
   openPlayer: {
@@ -18,21 +17,12 @@ const Play: React.FC = () => {
   const file = useGlobalState((state) => state.file);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
-  useEffect(() => {
-    if (!file || !videoRef.current) return;
-    const flvPlayer = flvjs.createPlayer({
-      type: file.type,
-      url: URL.createObjectURL(file),
-    });
-    flvPlayer.attachMediaElement(videoRef.current);
-    flvPlayer.load();
-  }, [file, videoRef]);
-
   return (
     <motion.div variants={variants} className="h-full w-full relative">
       <video
         id="video"
         ref={videoRef}
+        src={file && URL.createObjectURL(file)}
         preload="auto"
         className="block w-full h-full visible m-auto"
         style={{ contentVisibility: "visible" }}
