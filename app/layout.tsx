@@ -5,6 +5,7 @@ import { NextUIProvider } from "@nextui-org/react";
 export const metadata: Metadata = {
   title: "Danmaku Player",
   description: "",
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({
@@ -13,9 +14,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="zh-CN">
       <body>
-        <NextUIProvider className='h-screen w-screen'>
+        <NextUIProvider className="h-screen w-screen">
           {children}
         </NextUIProvider>
       </body>
