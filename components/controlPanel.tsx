@@ -1,4 +1,4 @@
-import { MutableRefObject, useEffect, useRef, useState } from "react";
+import { MutableRefObject, useEffect, useState } from "react";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import PauseIcon from "@mui/icons-material/Pause";
 import { Progress } from "@nextui-org/progress";
@@ -22,7 +22,6 @@ import { exitFullscreen, requestFullscreen } from "@/utils";
 import { useGlobalState } from "./utils";
 
 import fakeData from "./fake.json";
-import { set } from "lodash-es";
 const danmakuStyle = {
   fontSize: "20px",
   color: "#ffffff",

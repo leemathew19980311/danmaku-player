@@ -1,10 +1,23 @@
-import { createHash, hash } from "crypto"; // 导入 crypto 库
+import { createHash } from "crypto"; // 导入 crypto 库
 
 const generateFileHash = async (file: File): Promise<string> => {
-  const arrayBuffer = await file.arrayBuffer();
-  const hash = createHash("sha256");
-  hash.update(new Uint8Array(arrayBuffer));
-  return hash.digest("hex");
+  // const arrayBuffer = await file.arrayBuffer();
+  // const hash = createHash("sha256");
+  // hash.update(new Uint8Array(arrayBuffer));
+  // return hash.digest("hex");
+  return new Promise((resolve, reject) => {
+    const worker = new Worker(new URL("./hashWorker.ts", import.meta.url));
+
+    worker.onmessage = (e) => {
+      resolve(e.data);
+    };
+
+    worker.onerror = (e) => {
+      reject(e);
+    };
+
+    worker.postMessage({ file });
+  });
 };
 
 function generateFingerprint() {

@@ -14,7 +14,7 @@ const variants: Variants = {
   },
 };
 const Play: React.FC = () => {
-  const file = useGlobalState((state) => state.file);
+  const {file,danmakuInstance} = useGlobalState();
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   return (
