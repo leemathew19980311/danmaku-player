@@ -18,10 +18,12 @@ import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import DanmakuLib from "danmaku/dist/esm/danmaku.dom.js";
-import { exitFullscreen, requestFullscreen } from "@/utils";
+import { exitFullscreen, generateFileHash, requestFullscreen } from "@/utils";
 import { useGlobalState } from "./utils";
 
 import fakeData from "./fake.json";
+import { get, post } from "./axiosInstance";
+import { DanmakuItem } from "./types";
 const danmakuStyle = {
   fontSize: "20px",
   color: "#ffffff",
@@ -43,16 +45,6 @@ const createDanmakuInstance = () => {
   });
 };
 
-const getInitData = () => {
-  fakeData.forEach((item) => {
-    danmakuInstance.emit({
-      text: item.text,
-      time: item.offset_time / 1000,
-      style: danmakuStyle,
-    });
-  });
-};
-
 const ControlPanel = ({
   videoRef,
 }: {
@@ -66,7 +58,7 @@ const ControlPanel = ({
   const [isFullScreen, setIsFullScreen] = useState(false); // 记录当前是否全屏
   const [danmakuText, setDanmakuText] = useState("");
 
-  const { file } = useGlobalState((state) => state);
+  const { file, file_hash } = useGlobalState((state) => state);
 
   useEffect(() => {
     if (!videoRef.current) return;
@@ -116,8 +108,30 @@ const ControlPanel = ({
     };
   }, [file]);
 
+  const getInitData = async () => {
+    const hash = await generateFileHash(file as File);
+    get(`/api/getDanmakuList?fileHash=${hash}`).then((res) => {
+      res.data.result.rows.forEach((row: DanmakuItem) =>
+        danmakuInstance.emit({
+          text: row.content,
+          time: row.offset_time / 1000,
+          style: danmakuStyle,
+        })
+      );
+    });
+  };
+
   const handleDanmaku = () => {
     if (!danmakuText || !danmakuInstance) return;
+    post("/api/addDanmaku", {
+      file_hash,
+      content: danmakuText,
+      offset_time: (videoRef.current?.currentTime ?? 1) * 1000,
+      file_metadata: { filename: "test.mp4" },
+    }).then((res) => {
+      console.log(res);
+    });
+
     danmakuInstance.emit({
       text: danmakuText,
       time: videoRef.current?.currentTime ?? 1,

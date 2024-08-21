@@ -1,21 +1,16 @@
-import { createHash } from "crypto"; // 导入 crypto 库
+import { useGlobalState } from "@/components/utils";
 
-const generateFileHash = async (file: File): Promise<string> => {
-  // const arrayBuffer = await file.arrayBuffer();
-  // const hash = createHash("sha256");
-  // hash.update(new Uint8Array(arrayBuffer));
-  // return hash.digest("hex");
-  return new Promise((resolve, reject) => {
+const generateFileHash = async (file: File): Promise<string | undefined> => {
+  return new Promise((resolve) => {
     const worker = new Worker(new URL("./hashWorker.ts", import.meta.url));
-
     worker.onmessage = (e) => {
+      useGlobalState.setState({ file_hash: e.data });
       resolve(e.data);
     };
-
     worker.onerror = (e) => {
-      reject(e);
+      useGlobalState.setState({ file_hash: undefined });
+      resolve(undefined);
     };
-
     worker.postMessage({ file });
   });
 };
@@ -51,11 +46,6 @@ function getFileFromLocal(): Promise<File | undefined> {
     // 使用 Promise
     input.onchange = async (event) => {
       const file = (event.target as HTMLInputElement).files?.[0];
-      const worker = new Worker(new URL("./worker.ts", import.meta.url));
-      worker.onmessage = (event) => {
-        console.log(event);
-      };
-      worker.postMessage(file);
       input.remove();
       resolve(file); // 解析文件
     };
