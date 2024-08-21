@@ -1,12 +1,10 @@
 "use client";
 import Image from "next/image";
-import { AnimatePresence, motion, useCycle, Variants } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 
 import { useGlobalState } from "./utils";
 import SelectFile from "./selectFile";
 import Play from "./play";
-import damakuList from "./fake.json";
-import { useEffect } from "react";
 
 const aside: Variants = {
   openPlayer: {
