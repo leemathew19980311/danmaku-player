@@ -1,7 +1,7 @@
 import { createHash } from "crypto"; // 导入 crypto 库
 self.onmessage = async function (e) {
   const { file } = e.data;
-  const chunkSize = 1024 * 1024 * 2; // 2MB per chunk
+  const chunkSize = 1024 * 1024 * 20; // 2MB per chunk
   const hash = createHash("sha256");
   const fileReader = new FileReader();
 

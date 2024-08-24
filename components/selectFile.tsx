@@ -39,17 +39,11 @@ const SelectFile: React.FC = () => {
           >
             打开...
           </Button>
-          <Button
-            className="justify-start bg-transparent hover:bg-slate-300"
-            onClick={test}
-          >
+          <Button className="justify-start bg-transparent hover:bg-slate-300">
             打开URL...
           </Button>
           <br />
-          <Button
-            className="justify-start bg-transparent hover:bg-slate-300"
-            onClick={test2}
-          >
+          <Button className="justify-start bg-transparent hover:bg-slate-300">
             <ReplayIcon fontSize="small" />
             继续播放xxx
           </Button>

@@ -1,7 +1,6 @@
 import { MutableRefObject, useEffect, useState } from "react";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import PauseIcon from "@mui/icons-material/Pause";
-import { Progress } from "@nextui-org/progress";
 import { motion } from "framer-motion";
 import {
   Button,
@@ -21,9 +20,9 @@ import DanmakuLib from "danmaku/dist/esm/danmaku.dom.js";
 import { exitFullscreen, generateFileHash, requestFullscreen } from "@/utils";
 import { useGlobalState } from "./utils";
 
-import fakeData from "./fake.json";
 import { get, post } from "./axiosInstance";
 import { DanmakuItem } from "./types";
+import { debounce } from "lodash-es";
 const danmakuStyle = {
   fontSize: "20px",
   color: "#ffffff",
@@ -47,8 +46,10 @@ const createDanmakuInstance = () => {
 
 const ControlPanel = ({
   videoRef,
+  isControlPanelVisible,
 }: {
   videoRef: MutableRefObject<HTMLVideoElement | null>;
+  isControlPanelVisible: boolean;
 }) => {
   const [currentTime, setCurrentTime] = useState(0); // 记录当前播放时间
   const [duration, setDuration] = useState(0); // 记录视频总时长
@@ -166,21 +167,56 @@ const ControlPanel = ({
       exitFullscreen();
     } else {
       setIsFullScreen(true);
-      requestFullscreen(videoRef.current);
+      requestFullscreen(document.querySelector("#playerContainer"));
     }
   };
   const playOrPauseVariants = {
     play: { rotate: 0 },
     pause: { rotate: -180 },
   };
+  const controlPanelVariants = {
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.5,
+        type: "tween",
+      },
+    },
+    hidden: {
+      opacity: 0,
+      y: 56,
+      transition: {
+        duration: 0.5,
+        type: "tween",
+      },
+    },
+  };
+
   return (
-    <motion.div className="absolute bottom-0 left-0 right-0 w-full h-14 bg-gray-800 z-10">
-      <Progress
-        size="sm"
-        aria-label="Loading..."
-        value={(currentTime / duration) * 100}
-        color="primary"
-      />
+    <motion.div
+      variants={controlPanelVariants}
+      initial="hidden"
+      animate={isControlPanelVisible ? "visible" : "hidden"}
+      className="absolute bottom-0 left-0 right-0 w-full h-14 bg-gray-800 z-10"
+    >
+      <div className="relative w-full h-1">
+        <Slider
+          size="sm"
+          step={0.0001}
+          maxValue={1}
+          minValue={0}
+          defaultValue={0.7}
+          aria-label="video progress"
+          className="absolute -top-[10px] left-0 right-0 w-full h-full"
+          value={currentTime / duration}
+          onChange={(value) => {
+            videoRef.current &&
+              (videoRef.current.currentTime = (value as number) * duration);
+          }}
+        />
+      </div>
+
       <div className="flex items-center gap-x-3 h-[52px] px-4">
         <div className="flex items-center">
           {isPlaying ? (
@@ -262,7 +298,8 @@ const ControlPanel = ({
                 <span>{Math.floor(volume * 100)}</span>
                 <Slider
                   size="sm"
-                  disableThumbScale
+                  // disableThumbScale
+                  hideThumb={true}
                   step={0.01}
                   maxValue={1}
                   minValue={0}
