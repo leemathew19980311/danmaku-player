@@ -29,6 +29,10 @@ const SelectFile: React.FC = () => {
     });
   };
 
+  const test3 = () => {
+    let winOpen = window.open("", "_blank"); //首先打开一个新页面
+setTimeout(() => {winOpen!.location = 'www.baidu.com'}, 100)
+  }
   return (
     <>
       {!file && (
@@ -43,7 +47,7 @@ const SelectFile: React.FC = () => {
             打开URL...
           </Button>
           <br />
-          <Button className="justify-start bg-transparent hover:bg-slate-300">
+          <Button className="justify-start bg-transparent hover:bg-slate-300" onClick={test3} >
             <ReplayIcon fontSize="small" />
             继续播放xxx
           </Button>
